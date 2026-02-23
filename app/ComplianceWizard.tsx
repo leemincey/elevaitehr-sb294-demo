@@ -1,12 +1,21 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ComplianceFormData, WizardStep } from '@/types';
 import { StepNotice } from '@/components/steps/StepNotice';
 import { StepSignature } from '@/components/steps/StepSignature';
 import { StepContact } from '@/components/steps/StepContact';
 import { StepSuccess } from '@/components/steps/StepSuccess';
 import { motion, AnimatePresence } from 'framer-motion';
+
+interface ComplianceFormData {
+  signatureBase64: string | null;
+  contactName: string;
+  contactPhone: string;
+  contactRelationship: string;
+  authorizeDetention: boolean;
+}
+
+type WizardStep = 1 | 2 | 3 | 4;
 
 const INITIAL_DATA: ComplianceFormData = {
   signatureBase64: null,
