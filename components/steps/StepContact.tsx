@@ -3,10 +3,12 @@
 import React, { useState } from 'react';
 import { ShieldAlert, AlertTriangle } from 'lucide-react';
 
-export const StepContact = ({ formData, updateFormData, onNext, onBack }: {
+export const StepContact = ({ formData, updateFormData, onSubmit, onBack, submitError }: {
   formData: any;
   updateFormData: (updates: any) => void;
-  onNext: () => void;
+  onSubmit: () => Promise<void>;
+  onBack?: () => void;
+  submitError: string | null;
   onBack?: () => void;
 }) => {
   const [errors, setErrors] = useState<{name?: string; phone?: string}>({});
@@ -43,7 +45,7 @@ export const StepContact = ({ formData, updateFormData, onNext, onBack }: {
       console.error('Submission error:', err);
     } finally {
       setSubmitting(false);
-      onNext();
+      await onSubmit();
     }
   };
 
