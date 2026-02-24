@@ -7,7 +7,7 @@ import { StepContact } from '@/components/steps/StepContact';
 import { StepSuccess } from '@/components/steps/StepSuccess';
 import { motion, AnimatePresence } from 'framer-motion';
 
-interface ComplianceFormData {
+export interface ComplianceFormData {
   firstName: string;
   lastName: string;
   email: string;
@@ -38,24 +38,47 @@ const INITIAL_DATA: ComplianceFormData = {
 export default function ComplianceWizard() {
   const [currentStep, setCurrentStep] = useState<WizardStep>(1);
   const [formData, setFormData] = useState<ComplianceFormData>(INITIAL_DATA);
+  const [recordId, setRecordId] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const updateFormData = (updates: Partial<ComplianceFormData>) => {
     setFormData(prev => ({ ...prev, ...updates }));
   };
 
-  const nextStep = () => {
-    setCurrentStep(prev => Math.min(prev + 1, 5) as WizardStep);
-  };
+  const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, 5) as WizardStep);
+  const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1) as WizardStep);
 
-  const prevStep = () => {
-    setCurrentStep(prev => Math.max(prev - 1, 1) as WizardStep);
+  const handleSubmit = async () => {
+    setSubmitError(null);
+    const res = await fetch('/api/records/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        department: formData.department,
+        signatureBase64: formData.signatureBase64,
+        contactName: formData.contactName,
+        contactPhone: formData.contactPhone,
+        contactRelationship: formData.contactRelationship,
+        authorizeDetention: formData.authorizeDetention,
+        languagePreference: formData.selectedLanguage,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setSubmitError(data.error ?? 'Submission failed. Please try again.');
+      throw new Error(data.error);
+    }
+    setRecordId(data.recordId);
+    nextStep();
   };
 
   const progress = ((currentStep - 1) / 4) * 100;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 bg-slate-50">
-      {/* Header */}
       <div className="w-full max-w-2xl mb-8 flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -63,14 +86,10 @@ export default function ComplianceWizard() {
           </div>
           <span className="text-gray-900 font-semibold tracking-tight">ElevaiteHR</span>
         </div>
-        <div className="text-sm text-gray-500">
-          Step {currentStep} of 5
-        </div>
+        <div className="text-sm text-gray-500">Step {currentStep} of 5</div>
       </div>
 
-      {/* Main Card */}
       <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden flex flex-col">
-        {/* Progress Bar */}
         <div className="h-1.5 bg-gray-100 w-full">
           <motion.div
             className="h-full bg-blue-600"
@@ -80,7 +99,6 @@ export default function ComplianceWizard() {
           />
         </div>
 
-        {/* Content */}
         <div className="p-6 sm:p-10 min-h-[400px]">
           <AnimatePresence mode="wait">
             <motion.div
@@ -100,17 +118,27 @@ export default function ComplianceWizard() {
                 <StepSignature formData={formData} updateFormData={updateFormData} onNext={nextStep} onBack={prevStep} />
               )}
               {currentStep === 4 && (
-                <StepContact formData={formData} updateFormData={updateFormData} onNext={nextStep} onBack={prevStep} />
+                <StepContact
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  onSubmit={handleSubmit}
+                  onBack={prevStep}
+                  submitError={submitError}
+                />
               )}
               {currentStep === 5 && (
-                <StepSuccess formData={formData} updateFormData={updateFormData} onNext={() => {}} />
+                <StepSuccess
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  recordId={recordId}
+                  onNext={() => {}}
+                />
               )}
             </motion.div>
           </AnimatePresence>
         </div>
       </div>
 
-      {/* Footer */}
       <div className="mt-8 text-center text-xs text-gray-400">
         &copy; {new Date().getFullYear()} ElevaiteHR. Secure & Compliance Ready.
       </div>

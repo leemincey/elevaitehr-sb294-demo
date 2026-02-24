@@ -6,15 +6,29 @@ import { motion } from 'framer-motion';
 import jsPDF from 'jspdf';
 import { downloadNotice, NOTICE_LANGUAGES } from '@/lib/noticeLanguages';
 
-export const StepSuccess = ({ formData }: {
+export const StepSuccess = ({ formData, recordId }: {
   formData: any;
   updateFormData?: (updates: any) => void;
   onNext?: () => void;
-  onBack?: () => void;
-  selectedLanguage?: string;
+  recordId?: string | null;
 }) => {
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const languageLabel = NOTICE_LANGUAGES.find((l) => l.code === selectedLanguage)?.label ?? 'English';
+
+  const handleDownloadNotice = async () => {
+    downloadNotice(selectedLanguage);
+    if (recordId) {
+      try {
+        await fetch('/api/records/update', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ recordId, languagePreference: selectedLanguage }),
+        });
+      } catch (err) {
+        console.error('Failed to update language preference:', err);
+      }
+    }
+  };
 
   const handleDownload = () => {
     const doc = new jsPDF();
@@ -226,7 +240,7 @@ export const StepSuccess = ({ formData }: {
             ))}
           </div>
           <button
-            onClick={() => downloadNotice(selectedLanguage)}
+            onClick={handleDownloadNotice}
             className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
           >
             <Download size={18} />
