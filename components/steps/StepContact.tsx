@@ -9,7 +9,7 @@ export const StepContact = ({ formData, updateFormData, onSubmit, onBack, submit
   onSubmit: () => Promise<void>;
   onBack?: () => void;
   submitError: string | null;
-  onBack?: () => void;
+
 }) => {
   const [errors, setErrors] = useState<{name?: string; phone?: string}>({});
   const [submitting, setSubmitting] = useState(false);
