@@ -1,14 +1,17 @@
 'use client';
-
 import React, { useState } from 'react';
 import { ScrollText } from 'lucide-react';
 import { NoticeAccordion } from '@/components/NoticeAccordion';
 
-export const StepNotice = ({ onNext }: {
-  formData: any;
-  updateFormData: (updates: any) => void;
+export const StepNotice = ({
+  onNext,
+}: {
+  formData?: any;
+  updateFormData?: (updates: any) => void;
   onNext: () => void;
   onBack?: () => void;
+  onLanguageChange?: (code: string) => void;
+  selectedLanguage?: string;
 }) => {
   const [isCompleted, setIsCompleted] = useState(false);
 
@@ -21,9 +24,9 @@ export const StepNotice = ({ onNext }: {
           </div>
         </div>
         <h2 className="text-2xl font-bold text-gray-900">California Workplace - Know Your Rights (SB 294)</h2>
-<p className="text-gray-500 text-sm max-w-md mx-auto">
-  Please review all sections below. Click each heading to expand and read.
-</p>
+        <p className="text-gray-500 text-sm max-w-md mx-auto">
+          Please review all sections below. Click each heading to expand and read.
+        </p>
       </div>
 
       <div className="max-h-[60vh] overflow-y-auto pr-1">
