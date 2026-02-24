@@ -67,26 +67,33 @@ export const StepSuccess = ({ formData }: {
 
     // Compliance details box
     doc.setFillColor(249, 250, 251);
-    doc.roundedRect(margin, y, contentWidth, 35, 3, 3, 'F');
-    doc.setDrawColor(229, 231, 235);
-    doc.roundedRect(margin, y, contentWidth, 35, 3, 3, 'S');
+doc.roundedRect(margin, y, contentWidth, 45, 3, 3, 'F');
+doc.setDrawColor(229, 231, 235);
+doc.roundedRect(margin, y, contentWidth, 45, 3, 3, 'S');
 
-    doc.setTextColor(17, 24, 39);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Compliance Details', margin + 5, y + 8);
+doc.setTextColor(17, 24, 39);
+doc.setFontSize(10);
+doc.setFont('helvetica', 'bold');
+doc.text('Compliance Details', margin + 5, y + 8);
 
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(75, 85, 99);
-    doc.text(`Date of Acknowledgement:`, margin + 5, y + 17);
-    doc.setTextColor(17, 24, 39);
-    doc.text(`${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`, margin + 65, y + 17);
+doc.setFont('helvetica', 'normal');
+doc.setTextColor(75, 85, 99);
+doc.text(`Employee Name:`, margin + 5, y + 17);
+doc.setTextColor(17, 24, 39);
+doc.setFont('helvetica', 'bold');
+doc.text(formData.employeeName || '—', margin + 65, y + 17);
 
-    doc.setTextColor(75, 85, 99);
-    doc.text(`Notice Version:`, margin + 5, y + 25);
-    doc.setTextColor(17, 24, 39);
-    doc.text(`2026 California Workplace Know Your Rights Notice`, margin + 65, y + 25);
-    y += 45;
+doc.setFont('helvetica', 'normal');
+doc.setTextColor(75, 85, 99);
+doc.text(`Date of Acknowledgement:`, margin + 5, y + 26);
+doc.setTextColor(17, 24, 39);
+doc.text(`${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`, margin + 65, y + 26);
+
+doc.setTextColor(75, 85, 99);
+doc.text(`Notice Version:`, margin + 5, y + 35);
+doc.setTextColor(17, 24, 39);
+doc.text(`2026 California Workplace Know Your Rights Notice`, margin + 65, y + 35);
+y += 55;
 
     // Emergency contact section
     doc.setFontSize(12);
@@ -175,7 +182,8 @@ export const StepSuccess = ({ formData }: {
     doc.text(footerLines, margin, y);
 
     // Save
-    doc.save(`SB294-Compliance-${new Date().toISOString().split('T')[0]}.pdf`);
+  const safeName = (formData.employeeName || 'Employee').replace(/[^a-z0-9]/gi, '-');
+    doc.save(`SB294-Compliance-${safeName}-${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   return (
@@ -202,10 +210,15 @@ export const StepSuccess = ({ formData }: {
       <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm max-w-sm mx-auto text-left space-y-3">
         <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Summary</h3>
         <div className="text-sm text-gray-600 space-y-1">
+        
           <div className="flex justify-between">
-            <span>Status:</span>
-            <span className="text-green-600 font-medium">Signed & Verified</span>
-          </div>
+  <span>Employee:</span>
+  <span className="font-medium text-gray-900">{formData.employeeName}</span>
+</div>
+<div className="flex justify-between">
+  <span>Status:</span>
+  <span className="text-green-600 font-medium">Signed & Verified</span>
+</div>
           <div className="flex justify-between">
             <span>Date:</span>
             <span>{new Date().toLocaleDateString()}</span>
