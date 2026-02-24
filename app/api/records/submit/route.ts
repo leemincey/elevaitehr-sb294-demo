@@ -10,32 +10,46 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    const { data, error } = await supabase
-      .from('employee_records')
-      .insert([
-        {
-          first_name: body.firstName,
-          last_name: body.lastName,
-          employee_name: `${body.firstName} ${body.lastName}`.trim(),
-          employee_email: body.email,
-          department: body.department,
-          signature_base64: body.signatureBase64,
-          contact_name: body.contactName,
-          contact_phone: body.contactPhone,
-          contact_relationship: body.contactRelationship,
-          authorize_detention: body.authorizeDetention,
-          language: body.languagePreference ?? 'en',
-        },
-      ]);
-
-    if (error) {
-      console.error('Supabase error:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (!body.firstName?.trim()) {
+      return NextResponse.json({ error: 'First name is required.' }, { status: 400 });
+    }
+    if (!body.signatureBase64) {
+      return NextResponse.json({ error: 'Signature is required.' }, { status: 400 });
     }
 
-    return NextResponse.json({ success: true, data });
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? req.headers.get('x-real-ip') ?? null;
+    const userAgent = req.headers.get('user-agent') ?? null;
+
+    const { data, error } = await supabase
+      .from('employee_records')
+      .insert({
+        first_name: body.firstName.trim(),
+        last_name: body.lastName.trim(),
+        employee_name: `${body.firstName} ${body.lastName}`.trim(),
+        employee_email: body.email?.trim() || null,
+        department: body.department?.trim() || null,
+        signature_base64: body.signatureBase64,
+        contact_name: body.contactName?.trim() || null,
+        contact_phone: body.contactPhone?.trim() || null,
+        contact_relationship: body.contactRelationship?.trim() || null,
+        authorize_detention: body.authorizeDetention ?? false,
+        language: body.languagePreference ?? 'en',
+        language_preference: body.languagePreference ?? 'en',
+        ip_address: ip,
+        user_agent: userAgent,
+        completed_at: new Date().toISOString(),
+      })
+      .select('id')
+      .single();
+
+    if (error) {
+      console.error('[submit] Supabase error:', error);
+      return NextResponse.json({ error: 'Failed to save record.' }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, recordId: data.id });
   } catch (err) {
-    console.error('Submit error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('[submit] Unexpected error:', err);
+    return NextResponse.json({ error: 'An unexpected error occurred.' }, { status: 500 });
   }
 }
