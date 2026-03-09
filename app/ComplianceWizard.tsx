@@ -1,5 +1,6 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { StepEmployeeInfo } from '@/components/steps/StepEmployeeInfo';
 import { StepNotice } from '@/components/steps/StepNotice';
 import { StepSignature } from '@/components/steps/StepSignature';
@@ -7,7 +8,7 @@ import { StepContact } from '@/components/steps/StepContact';
 import { StepSuccess } from '@/components/steps/StepSuccess';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export interface ComplianceFormData {
+interface ComplianceFormData {
   firstName: string;
   lastName: string;
   email: string;
@@ -18,6 +19,7 @@ export interface ComplianceFormData {
   contactRelationship: string;
   authorizeDetention: boolean;
   selectedLanguage: string;
+  prospectId: string;
 }
 
 type WizardStep = 1 | 2 | 3 | 4 | 5;
@@ -33,13 +35,21 @@ const INITIAL_DATA: ComplianceFormData = {
   contactRelationship: '',
   authorizeDetention: false,
   selectedLanguage: 'en',
+  prospectId: '',
 };
 
 export default function ComplianceWizard() {
+  const searchParams = useSearchParams();
   const [currentStep, setCurrentStep] = useState<WizardStep>(1);
   const [formData, setFormData] = useState<ComplianceFormData>(INITIAL_DATA);
-  const [recordId, setRecordId] = useState<string | null>(null);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Capture prospect ID from URL ?prospect=abc123
+  useEffect(() => {
+    const prospect = searchParams.get('prospect') ?? '';
+    if (prospect) {
+      setFormData(prev => ({ ...prev, prospectId: prospect }));
+    }
+  }, [searchParams]);
 
   const updateFormData = (updates: Partial<ComplianceFormData>) => {
     setFormData(prev => ({ ...prev, ...updates }));
@@ -48,57 +58,42 @@ export default function ComplianceWizard() {
   const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, 5) as WizardStep);
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1) as WizardStep);
 
-  const handleSubmit = async () => {
-    setSubmitError(null);
-    const res = await fetch('/api/records/submit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        department: formData.department,
-        signatureBase64: formData.signatureBase64,
-        contactName: formData.contactName,
-        contactPhone: formData.contactPhone,
-        contactRelationship: formData.contactRelationship,
-        authorizeDetention: formData.authorizeDetention,
-        languagePreference: formData.selectedLanguage,
-      }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      setSubmitError(data.error ?? 'Submission failed. Please try again.');
-      throw new Error(data.error);
-    }
-    setRecordId(data.recordId);
-    nextStep();
-  };
-
   const progress = ((currentStep - 1) / 4) * 100;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 bg-slate-50">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 bg-slate-100">
+
+      {/* Header */}
       <div className="w-full max-w-2xl mb-8 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-xs">HR</span>
+        <div className="flex items-center space-x-3">
+          {/* Hard hat icon in brand orange */}
+          <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center shadow">
+            <span className="text-white font-bold text-sm">SPB</span>
           </div>
-          <span className="text-gray-900 font-semibold tracking-tight">ElevaiteHR</span>
+          <div>
+            <div className="text-gray-900 font-bold tracking-tight leading-tight">Sierra Pacific Builders</div>
+            <div className="text-xs text-gray-500">Employee Compliance Portal</div>
+          </div>
         </div>
-        <div className="text-sm text-gray-500">Step {currentStep} of 5</div>
+        <div className="text-sm text-gray-500">
+          Step {currentStep} of 5
+        </div>
       </div>
 
+      {/* Main Card */}
       <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden flex flex-col">
+
+        {/* Progress Bar — brand orange */}
         <div className="h-1.5 bg-gray-100 w-full">
           <motion.div
-            className="h-full bg-blue-600"
+            className="h-full bg-orange-500"
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.5, ease: "easeInOut" }}
           />
         </div>
 
+        {/* Content */}
         <div className="p-6 sm:p-10 min-h-[400px]">
           <AnimatePresence mode="wait">
             <motion.div
@@ -118,29 +113,19 @@ export default function ComplianceWizard() {
                 <StepSignature formData={formData} updateFormData={updateFormData} onNext={nextStep} onBack={prevStep} />
               )}
               {currentStep === 4 && (
-                <StepContact
-                  formData={formData}
-                  updateFormData={updateFormData}
-                  onSubmit={handleSubmit}
-                  onBack={prevStep}
-                  submitError={submitError}
-                />
+                <StepContact formData={formData} updateFormData={updateFormData} onNext={nextStep} onBack={prevStep} />
               )}
               {currentStep === 5 && (
-                <StepSuccess
-                  formData={formData}
-                  updateFormData={updateFormData}
-                  recordId={recordId}
-                  onNext={() => {}}
-                />
+                <StepSuccess formData={formData} updateFormData={updateFormData} onNext={() => {}} />
               )}
             </motion.div>
           </AnimatePresence>
         </div>
       </div>
 
+      {/* Footer */}
       <div className="mt-8 text-center text-xs text-gray-400">
-        &copy; {new Date().getFullYear()} ElevaiteHR. Secure & Compliance Ready.
+        &copy; {new Date().getFullYear()} Sierra Pacific Builders &mdash; Powered by <span className="font-medium text-orange-500">ElevaiteHR</span>
       </div>
     </div>
   );

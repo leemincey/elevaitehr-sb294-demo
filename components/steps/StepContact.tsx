@@ -3,13 +3,11 @@
 import React, { useState } from 'react';
 import { ShieldAlert, AlertTriangle } from 'lucide-react';
 
-export const StepContact = ({ formData, updateFormData, onSubmit, onBack, submitError }: {
+export const StepContact = ({ formData, updateFormData, onNext, onBack }: {
   formData: any;
   updateFormData: (updates: any) => void;
-  onSubmit: () => Promise<void>;
+  onNext: () => void;
   onBack?: () => void;
-  submitError: string | null;
-
 }) => {
   const [errors, setErrors] = useState<{name?: string; phone?: string}>({});
   const [submitting, setSubmitting] = useState(false);
@@ -39,13 +37,14 @@ export const StepContact = ({ formData, updateFormData, onSubmit, onBack, submit
           contactRelationship: formData.contactRelationship,
           authorizeDetention: formData.authorizeDetention,
           languagePreference: formData.selectedLanguage ?? 'en',
+          prospectId: formData.prospectId ?? '',
         }),
       });
     } catch (err) {
       console.error('Submission error:', err);
     } finally {
       setSubmitting(false);
-      await onSubmit();
+      onNext();
     }
   };
 
@@ -53,8 +52,8 @@ export const StepContact = ({ formData, updateFormData, onSubmit, onBack, submit
     <div className="space-y-6">
       <div className="text-center space-y-2">
         <div className="flex justify-center">
-          <div className="p-3 bg-amber-100 rounded-full">
-            <ShieldAlert className="w-8 h-8 text-amber-600" />
+          <div className="p-3 bg-orange-100 rounded-full">
+            <ShieldAlert className="w-8 h-8 text-orange-600" />
           </div>
         </div>
         <h2 className="text-2xl font-bold text-gray-900">Emergency Designation</h2>
@@ -78,7 +77,7 @@ export const StepContact = ({ formData, updateFormData, onSubmit, onBack, submit
               checked={formData.authorizeDetention}
               onChange={(e) => updateFormData({ authorizeDetention: e.target.checked })}
             />
-            <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-blue-600"></div>
+            <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-orange-500"></div>
           </label>
         </div>
 
@@ -91,7 +90,7 @@ export const StepContact = ({ formData, updateFormData, onSubmit, onBack, submit
               type="text"
               value={formData.contactName}
               onChange={(e) => updateFormData({ contactName: e.target.value })}
-              className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white dark:bg-gray-800 dark:border-gray-600 ${errors.name ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
+              className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-orange-400 outline-none text-gray-900 ${errors.name ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
               placeholder="e.g. Jane Doe"
             />
             {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
@@ -106,7 +105,7 @@ export const StepContact = ({ formData, updateFormData, onSubmit, onBack, submit
                 type="tel"
                 value={formData.contactPhone}
                 onChange={(e) => updateFormData({ contactPhone: e.target.value })}
-                className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white dark:bg-gray-800 dark:border-gray-600 ${errors.phone ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
+                className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-orange-400 outline-none text-gray-900 ${errors.phone ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
                 placeholder="e.g. (555) 123-4567"
               />
               {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
@@ -119,7 +118,7 @@ export const StepContact = ({ formData, updateFormData, onSubmit, onBack, submit
                 type="text"
                 value={formData.contactRelationship}
                 onChange={(e) => updateFormData({ contactRelationship: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white dark:bg-gray-800 dark:border-gray-600"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-400 outline-none text-gray-900"
                 placeholder="e.g. Spouse, Parent"
               />
             </div>
@@ -139,7 +138,7 @@ export const StepContact = ({ formData, updateFormData, onSubmit, onBack, submit
         <button
           onClick={handleNext}
           disabled={submitting}
-          className="px-8 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-8 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {submitting ? 'Submitting...' : 'Submit Compliance'}
         </button>
@@ -147,4 +146,3 @@ export const StepContact = ({ formData, updateFormData, onSubmit, onBack, submit
     </div>
   );
 };
-// updated
